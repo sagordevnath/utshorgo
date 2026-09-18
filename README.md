@@ -87,9 +87,13 @@ utshorgo/
 | Method | Route | Description |
 |---|---|---|
 | GET | `/api/health` | Liveness + data mode |
-| GET | `/api/products?category=&search=&sort=` | Filtered/sorted catalog |
-| GET | `/api/products/:id` | Product detail |
+| GET | `/api/products?type=&category=&search=&sort=` | Filtered catalog (`type`: product / service) |
+| GET | `/api/products/:id` | Listing detail (approved only) |
 | GET | `/api/resellers` | Reseller directory |
+| GET | `/api/resellers/wholesale` | Wholesale price list with margins (reseller view) |
+| POST | `/api/submissions` | Submit a listing for review `{ name, description, type, category, price, reseller_price, stock, … }` |
+| GET | `/api/submissions?status=` | Moderation queue |
+| POST | `/api/submissions/:id/moderate` | Admin approve/reject `{ decision, note? }` |
 | GET | `/api/orders` | Recent orders |
 | POST | `/api/orders` | Create order `{ items, total }` |
 
@@ -101,17 +105,41 @@ React (Zustand) ──fetch──▶ Express API ──@supabase/supabase-js─�
      └──────── demo fallback when no keys ────┘
 ```
 
+### Listing lifecycle
+
+```
+Seller submits (/sell) ──▶ status: pending ──▶ Admin reviews (/admin)
+                                   ├── approved ──▶ live in catalog + wholesale list
+                                   └── rejected ──▶ returned to seller with note
+```
+
 ---
 
 ## Features
 
 **Marketplace (buyer)**
-- Animated 3D hero with rotating featured products
+- Products **and** services in one catalog, with Everything / Products / Services tabs
+- Animated 3D hero with rotating featured listings
 - Live search, category filters, and sorting (price / rating / newest)
 - Product detail pages with quantity picker, related items, seller card
 - Slide-in bag drawer with quantity controls; cart persists across reloads
 - 3-step checkout (shipping → payment → review) with validation and confirmation screen
-- Loading skeletons, scroll-reveal animations, toast notifications
+- Loading skeletons, 3D tilt-in scroll reveals, toast notifications
+
+**Sellers**
+- Professional submission studio (`/sell`): product or service, live preview card,
+  reseller-margin calculator, inline validation
+- Listings go live only after **admin approval** (`/admin` console: pending / approved / rejected queues)
+
+**Resellers**
+- Reseller Exchange (`/resellers`): members-only wholesale price list with per-listing
+  margins, retail vs. wholesale columns, stock counts, Product/Service filtering
+- Sellers set their reseller purchase price at submission time
+
+**Reseller dashboard**
+- Animated stat counters (revenue, orders, products, rating)
+- Sales momentum bars, top-rated products, recent orders table
+- Data-source indicator (demo vs. Supabase)
 
 **Reseller dashboard**
 - Animated stat counters (revenue, orders, products, rating)
@@ -121,8 +149,10 @@ React (Zustand) ──fetch──▶ Express API ──@supabase/supabase-js─�
 **Platform**
 - Strict TypeScript everywhere
 - Graceful degradation: identical API shape in demo and Supabase modes
-- Supabase schema with RLS policies and full-text index
-- `prefers-reduced-motion` support, responsive to 375px
+- Supabase schema with type/status/wholesale columns, RLS policies, full-text index
+- Futuristic 3D motion system: tilt-in reveals, floating hero, orbiting accents,
+  holographic gradients — all disabled under `prefers-reduced-motion`
+- Responsive to 375px
 
 ---
 

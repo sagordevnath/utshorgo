@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { Link, NavLink, useNavigate } from 'react-router-dom';
-import { Heart, Menu, Search, ShoppingBag, X } from 'lucide-react';
+import { Menu, Search, ShieldCheck, ShoppingBag, X } from 'lucide-react';
 import { useCart } from '../stores/cart';
+import logo from '../assets/utshorgo-logo@1x.png';
+import logo2x from '../assets/utshorgo-logo@2x.png';
 
 export function Header() {
   const navigate = useNavigate();
@@ -18,16 +20,27 @@ export function Header() {
   return (
     <header className="site-header">
       <Link className="wordmark" to="/">
-        <span className="wordmark-mark">U</span>
-        <span>utshorgo</span>
+        <img
+          className="wordmark-logo"
+          src={logo}
+          srcSet={`${logo2x} 2x`}
+          width={118}
+          height={40}
+          alt="Utshorgo"
+        />
       </Link>
       <nav className="main-nav" aria-label="Primary navigation">
         <NavLink to="/" end className={({ isActive }) => (isActive ? 'active' : '')}>
           Discover
         </NavLink>
-        <a href="/#resellers">Resellers</a>
-        <a href="/#categories">Categories</a>
-        <NavLink to="/dashboard">Sell on Utshorgo</NavLink>
+        <NavLink to="/resellers" className={({ isActive }) => (isActive ? 'active' : '')}>
+          Reseller Exchange
+        </NavLink>
+        <NavLink to="/sell" className={({ isActive }) => (isActive ? 'active' : '')}>
+          Sell
+        </NavLink>
+        <NavLink to="/inventory">Inventory</NavLink>
+        <NavLink to="/dashboard">Dashboard</NavLink>
       </nav>
       <div className="header-actions">
         {searchOpen ? (
@@ -49,9 +62,9 @@ export function Header() {
             <button className="icon-button" aria-label="Open search" onClick={() => setSearchOpen(true)}>
               <Search size={18} />
             </button>
-            <button className="icon-button" aria-label="Open saved items">
-              <Heart size={18} />
-            </button>
+            <Link to="/admin" className="icon-button" aria-label="Admin approval console" title="Admin console">
+              <ShieldCheck size={18} />
+            </Link>
           </>
         )}
         <Link to="/checkout" className="cart-button" aria-label="Open cart">

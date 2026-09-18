@@ -71,7 +71,7 @@ export function ProductPage() {
           <ArrowLeft size={14} /> Marketplace
         </Link>
         <div className="product-hero-grid">
-          <div className={`product-hero-visual ${product.visual}`}>
+          <div className={`product-hero-visual ${product.visual}`} data-cursor="view">
             <span className="product-number">{String(product.id).padStart(3, '0')}</span>
             {product.on_sale && <span className="sale-tag">Sale</span>}
             {product.is_new && <span className="new-tag">New</span>}

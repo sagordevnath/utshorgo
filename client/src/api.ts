@@ -1,4 +1,14 @@
-import type { ApiEnvelope, OrderRecord, Product, Reseller } from './types';
+import type {
+  ApiEnvelope,
+  InventoryData,
+  OrderRecord,
+  Product,
+  Reseller,
+  Resale,
+  Purchase,
+  SubmissionInput,
+  WholesaleItem,
+} from './types';
 
 const BASE = import.meta.env.VITE_API_URL ?? '/api';
 
@@ -25,7 +35,7 @@ async function post<T>(path: string, body: unknown): Promise<ApiEnvelope<T>> {
 }
 
 export const api = {
-  listProducts: (params: { category?: string; search?: string; sort?: string } = {}) => {
+  listProducts: (params: { category?: string; search?: string; sort?: string; type?: string } = {}) => {
     const qs = new URLSearchParams(
       Object.entries(params).filter(([, v]) => v !== undefined && v !== '') as [string, string][]
     ).toString();
@@ -33,7 +43,17 @@ export const api = {
   },
   getProduct: (id: string | number) => get<Product>(`/products/${id}`),
   listResellers: () => get<Reseller[]>('/resellers'),
+  listWholesale: () => get<WholesaleItem[]>('/resellers/wholesale'),
+  listSubmissions: (status?: string) => get<Product[]>(`/submissions${status ? `?status=${status}` : ''}`),
+  submitListing: (input: SubmissionInput) => post<Product>('/submissions', input),
+  moderate: (id: number, decision: 'approved' | 'rejected', note?: string) =>
+    post<Product>(`/submissions/${id}/moderate`, { decision, note }),
   listOrders: () => get<OrderRecord[]>('/orders'),
   createOrder: (items: { product: Product; qty: number }[], total: number) =>
     post<OrderRecord>('/orders', { items, total }),
+  listInventory: () => get<InventoryData>('/inventory'),
+  purchaseStock: (listingId: number, qty: number): Promise<ApiEnvelope<Purchase>> =>
+    post<Purchase>('/purchases', { listing_id: listingId, qty }),
+  recordResale: (purchaseId: number, qty: number, unitPrice: number): Promise<ApiEnvelope<Resale>> =>
+    post<Resale>('/resales', { purchase_id: purchaseId, qty, unit_price: unitPrice }),
 };

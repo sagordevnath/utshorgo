@@ -55,7 +55,11 @@ export function Hero({ products }: HeroProps) {
           <span>Curated by people, not algorithms</span>
         </div>
       </div>
-      <div className="hero-stage reveal visible" aria-label="Rotating 3D product display">
+      <div
+        className="hero-stage reveal visible"
+        aria-label="Rotating 3D product display"
+        data-cursor="drag"
+      >
         <div className="orbit orbit-one" />
         <div className="orbit orbit-two" />
         <div className="stage-label stage-label-top">

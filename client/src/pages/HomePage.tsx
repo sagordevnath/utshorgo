@@ -23,12 +23,18 @@ const SORTS = [
   { value: 'price_desc', label: 'Price ↓' },
   { value: 'rating', label: 'Top rated' },
 ];
+const TYPE_TABS = [
+  { value: 'all', label: 'Everything' },
+  { value: 'product', label: 'Products' },
+  { value: 'service', label: 'Services' },
+] as const;
 
 export function HomePage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const search = searchParams.get('search') ?? '';
   const [category, setCategory] = useState('All');
   const [sort, setSort] = useState('newest');
+  const [listingType, setListingType] = useState<'all' | 'product' | 'service'>('all');
   const [products, setProducts] = useState<Product[]>([]);
   const [resellers, setResellers] = useState<Reseller[]>([]);
   const [loading, setLoading] = useState(true);
@@ -37,7 +43,7 @@ export function HomePage() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    Promise.all([api.listProducts({ category, search, sort }), api.listResellers()])
+    Promise.all([api.listProducts({ category, search, sort, type: listingType }), api.listResellers()])
       .then(([productsRes, resellersRes]) => {
         if (cancelled) return;
         setProducts(productsRes.data);
@@ -52,7 +58,7 @@ export function HomePage() {
     return () => {
       cancelled = true;
     };
-  }, [category, search, sort]);
+  }, [category, search, sort, listingType]);
 
   const tickerItems = useMemo(
     () => ['ONE MARKETPLACE', 'ONE THOUSAND WAYS TO FIND YOURS', 'CURATED BY PEOPLE', 'SHIPPED WITH INTENT'],
@@ -146,6 +152,19 @@ export function HomePage() {
             </h2>
           </div>
           <div className="filter-row">
+            <div className="type-tabs" role="tablist" aria-label="Listing type">
+              {TYPE_TABS.map((t) => (
+                <button
+                  key={t.value}
+                  role="tab"
+                  aria-selected={listingType === t.value}
+                  className={`type-tab ${listingType === t.value ? 'active' : ''}`}
+                  onClick={() => setListingType(t.value)}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
             {FILTERS.map((f) => (
               <button
                 key={f}

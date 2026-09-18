@@ -1,0 +1,114 @@
+/* ===================== Custom cursor system ===================== */
+/* Rendered only on fine pointers with motion allowed (guarded in TSX) */
+
+.cursor-layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 9999;
+}
+
+.cursor-dot,
+.cursor-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+/* Instant 6px dot inverts whatever it's over */
+.cursor-dot {
+  width: 6px;
+  height: 6px;
+  margin: -3px 0 0 -3px;
+  background: var(--white);
+  mix-blend-mode: difference;
+  transition: opacity var(--dur-fast) var(--ease), scale var(--dur-fast) var(--ease);
+}
+
+/* Lagging 34px ring inverts too; scales per state */
+.cursor-ring {
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border: 1.5px solid var(--white);
+  mix-blend-mode: difference;
+  display: grid;
+  place-items: center;
+  transition:
+    width var(--dur-base) var(--ease),
+    height var(--dur-base) var(--ease),
+    margin var(--dur-base) var(--ease),
+    border-color var(--dur-base) var(--ease),
+    opacity var(--dur-fast) var(--ease),
+    scale var(--dur-fast) var(--ease);
+}
+
+.cursor-label {
+  font-family: var(--mono);
+  font-size: 8px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--white);
+  opacity: 0;
+  transition: opacity var(--dur-fast) var(--ease);
+  user-select: none;
+}
+
+/* Native cursor: the dot becomes THE pointer (instant, precise) — hidden
+   everywhere except text fields, where the I-beam earns its keep. */
+.cursor-on,
+.cursor-on * {
+  cursor: none !important;
+}
+.cursor-on input,
+.cursor-on textarea,
+.cursor-on select {
+  cursor: text !important;
+}
+
+/* ---- State: over links & buttons — ring hugs the target size ---- */
+.cursor-hover .cursor-ring {
+  width: 52px;
+  height: 52px;
+  margin: -26px 0 0 -26px;
+  opacity: 0.85;
+}
+
+/* ---- State: VIEW zone (product imagery) — lime badge ---- */
+.cursor-view .cursor-ring {
+  width: 64px;
+  height: 64px;
+  margin: -32px 0 0 -32px;
+  border-color: rgba(217, 237, 89, 0.95);
+  background: rgba(217, 237, 89, 0.16);
+  backdrop-filter: blur(2px);
+}
+.cursor-view .cursor-label { opacity: 1; }
+.cursor-view .cursor-dot { scale: 0; }
+
+/* ---- State: DRAG zone (hero 3D stage) — aqua/blue badge ---- */
+.cursor-drag .cursor-ring {
+  width: 64px;
+  height: 64px;
+  margin: -32px 0 0 -32px;
+  border-color: rgba(139, 232, 208, 0.95);
+  background: rgba(70, 100, 255, 0.2);
+  backdrop-filter: blur(2px);
+}
+.cursor-drag .cursor-label { opacity: 1; }
+.cursor-drag .cursor-dot { scale: 0; }
+
+/* ---- State: text fields — beam, ring fades out ---- */
+.cursor-text .cursor-ring { opacity: 0; }
+
+/* ---- Press feedback ---- */
+.cursor-press { scale: 0.8; }
+
+/* ---- Off-window: hide both ---- */
+.cursor-hidden { opacity: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cursor-layer { display: none; }
+}

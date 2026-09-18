@@ -23,9 +23,13 @@ export function ProductCard({ product, index = 0 }: ProductCardProps) {
 
   return (
     <article className={`product-card reveal ${delay}`}>
-      <div className={`product-image ${product.visual}`}>
+      <div
+        className={`product-image ${product.visual} ${product.type === 'service' ? 'is-service' : ''}`}
+        data-cursor="view"
+      >
         {product.on_sale && <span className="sale-tag">Sale</span>}
         {product.is_new && <span className="new-tag">New</span>}
+        <span className={`type-tag ${product.type}`}>{product.type === 'service' ? 'Service' : 'Product'}</span>
         <button
           className={`wishlist ${saved ? 'saved' : ''}`}
           aria-label={`Save ${product.name}`}

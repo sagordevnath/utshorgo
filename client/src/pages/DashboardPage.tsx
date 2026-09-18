@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ArrowDownRight, ArrowUpRight, Package, ShoppingBag, Star, TrendingUp, Wallet } from 'lucide-react';
 import { api } from '../api';
-import type { OrderRecord, Product } from '../types';
+import type { InventoryData, OrderRecord, Product } from '../types';
 import { useCountUp } from '../hooks/useReveal';
+import { Link } from 'react-router-dom';
 
 function StatCard({ label, value, prefix = '', trend, icon: Icon }: { label: string; value: number; prefix?: string; trend: number; icon: typeof Wallet }) {
   const animated = useCountUp(value);
@@ -30,17 +31,28 @@ function StatCard({ label, value, prefix = '', trend, icon: Icon }: { label: str
 export function DashboardPage() {
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
+  const [inventory, setInventory] = useState<InventoryData | null>(null);
   const [mode, setMode] = useState<string>('demo');
 
   useEffect(() => {
-    Promise.all([api.listOrders(), api.listProducts(), api.listProducts({ sort: 'rating' })])
-      .then(([ordersRes, productsRes, topRes]) => {
+    Promise.all([api.listOrders(), api.listProducts(), api.listProducts({ sort: 'rating' }), api.listInventory()])
+      .then(([ordersRes, productsRes, topRes, invRes]) => {
         setOrders(ordersRes.data);
         setProducts(productsRes.data);
+        setInventory(invRes.data);
         setMode(ordersRes.mode);
       })
       .catch(() => undefined);
   }, []);
+
+  const resaleStats = useMemo(() => {
+    const resales = inventory?.resales ?? [];
+    const profit = resales.reduce((s, r) => s + r.profit, 0);
+    const revenue = resales.reduce((s, r) => s + r.revenue, 0);
+    const stock = (inventory?.rows ?? []).reduce((s, r) => s + r.remaining, 0);
+    const margin = revenue > 0 ? Math.round((profit / revenue) * 100) : 0;
+    return { resales, profit, revenue, stock, margin };
+  }, [inventory]);
 
   const revenue = useMemo(() => orders.reduce((sum, o) => sum + Number(o.total), 0), [orders]);
   const topProducts = useMemo(
@@ -135,6 +147,34 @@ export function DashboardPage() {
                 ))}
               </tbody>
             </table>
+          )}
+        </section>
+
+        <section className="panel resale-panel">
+          <h2>Resale profits</h2>
+          <div className="resale-stats">
+            <div><strong>${resaleStats.profit.toFixed(0)}</strong><span>net profit</span></div>
+            <div><strong>${resaleStats.revenue.toFixed(0)}</strong><span>resale revenue</span></div>
+            <div><strong>{resaleStats.margin}%</strong><span>avg margin</span></div>
+            <div><strong>{resaleStats.stock}</strong><span>units in stock</span></div>
+          </div>
+          {resaleStats.resales.length === 0 ? (
+            <p className="section-note">
+              No resales yet. Buy stock on the <Link to="/resellers">exchange</Link> and record sales in your{' '}
+              <Link to="/inventory">inventory hub</Link>.
+            </p>
+          ) : (
+            <ul className="resale-list">
+              {resaleStats.resales.slice(0, 5).map((r) => (
+                <li key={r.id}>
+                  <div>
+                    <strong>{r.qty} × {r.listing_name}</strong>
+                    <span>${r.unit_cost} → ${r.unit_price} per unit</span>
+                  </div>
+                  <span className={`resale-profit ${r.profit < 0 ? 'loss-cell' : ''}`}>{r.profit < 0 ? `-$${Math.abs(r.profit).toFixed(2)}` : `+$${r.profit.toFixed(2)}`}</span>
+                </li>
+              ))}
+            </ul>
           )}
         </section>
 
